@@ -2,18 +2,21 @@
 #include <vector>
 #include <random>
 
+#include "src/serial.h"
+
 #define N 8
 #define N_SOURCES 5
-#define SOURCE 100
 
 void print_grid(std::vector<std::vector<float>> grid){
   int i, j;
   int n_rows = grid.size();
   int n_cols = grid[0].size();
 
-  for (i = 0; i < n_rows; i++)
+  for (i = 0; i < n_rows; i++){
     for(j = 0; j < n_cols; j++)
-      std::cout << grid[i][j] << '\n';
+      std::cout << grid[i][j] << ' ';
+    std::cout << '\n';
+    }
 }
 
 int main() {
@@ -26,7 +29,6 @@ int main() {
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++){
       grid[i].push_back(0);
-      std::cout << grid[i][j] << '\n';
     }
   }
 
@@ -36,6 +38,10 @@ int main() {
     grid[rand_row][rand_col] = SOURCE;
   }
 
+  std::cout << "Start grid:" << '\n';
+  print_grid(grid);
+  grid = compute_heat_propagation(grid, 1);
+  std::cout << "New grid:" << '\n';
   print_grid(grid);
 
   return 0;
