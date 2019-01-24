@@ -1,10 +1,12 @@
 #include <iostream>
 #include <vector>
+#include <math.h>
 
 #include "serial.h"
 
 #define ALPHA 0.2
 #define SOURCE 100
+#define H 2
 
 std::vector<std::vector<float>> compute_heat_propagation(
       std::vector<std::vector<float>> grid, int n_iter){
@@ -47,7 +49,7 @@ std::vector<std::vector<float>> compute_heat_propagation(
         }
 
         if(current_point != SOURCE)
-          grid[i][j] = current_point + ALPHA * (left+right+top+bottom-4*current_point);
+          grid[i][j] = current_point + ALPHA * (left+right+top+bottom-4*current_point) / pow(H, 2);
       }
     }
 
