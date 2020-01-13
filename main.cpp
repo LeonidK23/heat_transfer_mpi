@@ -16,6 +16,8 @@ int main() {
   const int N = 8;
   const int N_SOURCES = 5;
   const int SOURCE_TEMPERATURE = 25;
+  const int ALPHA = 0.2;
+  const int H = 1;
 
   std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<> dis(0, N);
@@ -54,7 +56,7 @@ int main() {
 
   // std::cout << "Start grid:" << '\n';
   // print_grid(grid, N);
-  grid = heat_transfer(grid, 2, N, SOURCE_TEMPERATURE);
+  grid = heat_transfer(grid, 2, N, SOURCE_TEMPERATURE, ALPHA, H);
   // std::cout << "New grid:" << '\n';
   // print_grid(grid, N);
 

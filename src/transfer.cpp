@@ -4,11 +4,7 @@
 
 #include "transfer.hpp"
 
-#define ALPHA 0.2
-#define SOURCE_TEMPERATURE 25
-#define H 1
-
-double* heat_transfer(double* grid, int n_iter, int block_size){
+double* heat_transfer(double* grid, int n_iter, int block_size, const int source_temperature, const int alpha, const int h){
   int i, j, k;
   float left, right, bottom, top, current_point;
   double* old_grid;
@@ -48,8 +44,8 @@ double* heat_transfer(double* grid, int n_iter, int block_size){
           right = old_grid[i*block_size + j + 1];
         }
 
-        if(current_point != SOURCE_TEMPERATURE)
-          grid[i*block_size + j] = current_point + ALPHA * (left+right+top+bottom-4*current_point) / pow(H, 2);
+        if(current_point != source_temperature)
+          grid[i*block_size + j] = current_point + alpha * (left+right+top+bottom-4*current_point) / pow(h, 2);
         else
           grid[i*block_size + j] = current_point;
       }

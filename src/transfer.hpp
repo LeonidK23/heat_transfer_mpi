@@ -1,8 +1,6 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#define SOURCE_TEMPERATURE 25
-
-double* heat_transfer(double*, int, int);
+double* heat_transfer(double*, int, int, const int, const int, const int);
 
 #endif
