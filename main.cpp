@@ -1,22 +1,18 @@
 #include <iostream>
-#include <vector>
 #include <random>
 
-#include "src/serial.h"
+#include "src/transfer.hpp"
 
 #define N 8
 #define N_SOURCES 5
+#define SOURCE_TEMPERATURE 25
 
-void print_grid(std::vector<std::vector<float>> grid){
-  int i, j;
-  int n_rows = grid.size();
-  int n_cols = grid[0].size();
-
-  for (i = 0; i < n_rows; i++){
-    for(j = 0; j < n_cols; j++)
-      std::cout << grid[i][j] << ' ';
+void print_grid(double* grid){
+  for (int i = 0; i < N; i++){
+    for (int j = 0; j < N; j++)
+      std::cout << grid[i*N + j] << ' ';
     std::cout << '\n';
-    }
+  }
 }
 
 int main() {
@@ -24,25 +20,23 @@ int main() {
   std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<> dis(0, N);
   int rand_row, rand_col;
-  std::vector<std::vector<float>> grid(N);
+  double *grid;
 
-  for (i = 0; i < N; i++) {
-    for (j = 0; j < N; j++){
-      grid[i].push_back(0);
-    }
-  }
+  grid = new double[N*N];
+  for (int i = 0; i < N*N; ++i)
+        grid[i] = 0;
 
   for(i = 0; i < N_SOURCES; i++){
     rand_row = dis(gen);
     rand_col = dis(gen);
-    grid[rand_row][rand_col] = SOURCE;
+    grid[rand_row*N + rand_col] = SOURCE_TEMPERATURE;
   }
 
   std::cout << "Start grid:" << '\n';
   print_grid(grid);
-  grid = compute_heat_propagation(grid, 1);
+  grid = heat_transfer(grid, 2, N);
   std::cout << "New grid:" << '\n';
   print_grid(grid);
-  
+
   return 0;
 }
