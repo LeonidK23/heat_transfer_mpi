@@ -15,9 +15,9 @@ double* slice_matrix_square(double* grid, int N, int offset, int window_size, in
         window[i*window_size + j] = grid[grid_ind];
       std::cout << grid_ind << ' ';
     }
-    std::cout << '\n';
+    // std::cout << '\n';
   }
-  std::cout << "-------------------------------------" << '\n';
+  // std::cout << "-------------------------------------" << '\n';
 
   return window;
 }
@@ -35,12 +35,12 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
       for (int j = 0; j < window_size; j++){
         grid_ind = i*N + j + offset;
         window[i*window_size + j] = grid[grid_ind];
-        std::cout << grid_ind << ' ' << grid[grid_ind] << ' ';
+        // std::cout << grid_ind << ' ' << grid[grid_ind] << ' ';
         // std::cout << window[i*window_size + j] << ' ';
       }
-      std::cout << '\n';
+      // std::cout << '\n';
     }
-    std::cout << "-------------------------------------" << '\n';
+    // std::cout << "-------------------------------------" << '\n';
   } else {
     if (rank_id == 0){
       for (int i = 0; i < N; i++){
@@ -55,12 +55,12 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
             window[i*window_size + j] = grid[grid_ind];
           }
           // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
-          std::cout << window[i*window_size + j] << ' ';
+          // std::cout << window[i*window_size + j] << ' ';
 
         }
-        std::cout << '\n';
+        // std::cout << '\n';
       }
-      std::cout << "-------------------------------------" << '\n';
+      // std::cout << "-------------------------------------" << '\n';
     } else {
       for (int i = 0; i < N; i++){
         for (int j = 0; j < window_size; j++){
@@ -74,11 +74,11 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
             window[i*window_size + j] = grid[grid_ind];
           }
           // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
-          std::cout << window[i*window_size + j] << ' ';
+          // std::cout << window[i*window_size + j] << ' ';
         }
-        std::cout << '\n';
+        // std::cout << '\n';
       }
-      std::cout << "-------------------------------------" << '\n';
+      // std::cout << "-------------------------------------" << '\n';
     }
   }
 
