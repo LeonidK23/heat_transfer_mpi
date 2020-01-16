@@ -46,7 +46,7 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
       for (int i = 0; i < N; i++){
         for (int j = 0; j < window_size; j++){
           // the leftmost ghost line = source temperature
-          if (j == 0){
+          if (j < ghost_size){
             grid_ind = i*N + j + offset;
             window[i*window_size + j] = source_temp;
           }
@@ -56,12 +56,12 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
           }
           // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
           // std::cout << window[i*window_size + j] << ' ';
-
         }
         // std::cout << '\n';
       }
       // std::cout << "-------------------------------------" << '\n';
     } else {
+      std::cout << rank_id << '\n';
       for (int i = 0; i < N; i++){
         for (int j = 0; j < window_size; j++){
           // the rightmost ghost line also = source temperature
