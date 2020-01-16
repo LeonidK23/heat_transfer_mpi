@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
   int n_proc = num;
   int block_size = 2;
-  ghost_zone = 2;
+  ghost_zone = 1;
   // window = block + ghost_lines
   window_size = block_size + 2*ghost_zone;
   window_matrix = new double[N*window_size];
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
         // original offset - ghost zone
         // std::cout << "First send to processor " << rank_id << '\n';
         // block_matrix = slice_matrix_rectangle(grid, N, offset_with_ghost, window_size, SOURCE_TEMPERATURE);
-        window_matrix = slice_matrix_rectangle(grid, N, rank_id, block_size, ghost_zone, SOURCE_TEMPERATURE,
+        window_matrix = slice_matrix_rectangle(grid, N, N, rank_id, block_size, ghost_zone, SOURCE_TEMPERATURE,
                                                rank_id == 0 || rank_id == n_proc-2);
 
         // first send to all working processors
@@ -69,16 +69,25 @@ int main(int argc, char *argv[]) {
       // std::cout << "New grid:" << '\n';
       // print_grid(grid, N);
   } else {
+    double *ghost_lines;
+
+    ghost_lines = new double[N*ghost_zone];
+
     // first receive from master processor
     MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
 
-    // if (rank == 1){
-      // std::cout << "---------------------------------" << '\n';
+    if (rank == 0){
+      std::cout << "---------------------------------" << '\n';
       // print_grid(window_matrix, N, window_size);
       // std::cout << "---------------------------------" << '\n';
       window_matrix = heat_transfer(window_matrix, N, window_size, ghost_zone, SOURCE_TEMPERATURE, ALPHA, H);
-      // print_grid(window_matrix, N, window_size);
-    // }
+      print_grid(window_matrix, N, window_size);
+      // slice right ghost lines
+      ghost_lines = slice_matrix_rectangle(window_matrix, N, window_size, 2, ghost_zone, 0, SOURCE_TEMPERATURE, false);
+      // TODO: find out, how which parameters should I choose to cut off ghost lines with size 1/2. Pay with rank_id value-
+      // TODO: change signature of function slice_matrix_rectangle: instead of block_size. which is used only once send offset.
+      print_grid(ghost_lines, N, ghost_zone);
+    }
 
   }
 

@@ -23,17 +23,17 @@ double* slice_matrix_square(double* grid, int N, int offset, int window_size, in
 }
 
 
-double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border){
+double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border){
   int grid_ind, offset, window_size;
   offset = rank_id*block_size - ghost_size;
   window_size = block_size + 2*ghost_size;
 
-  double* window = new double[window_size*N];
+  double* window = new double[window_size*m];
 
   if (!is_border){
-    for (int i = 0; i < N; i++){
+    for (int i = 0; i < m; i++){
       for (int j = 0; j < window_size; j++){
-        grid_ind = i*N + j + offset;
+        grid_ind = i*n + j + offset;
         window[i*window_size + j] = grid[grid_ind];
         // std::cout << grid_ind << ' ' << grid[grid_ind] << ' ';
         // std::cout << window[i*window_size + j] << ' ';
@@ -43,15 +43,15 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
     // std::cout << "-------------------------------------" << '\n';
   } else {
     if (rank_id == 0){
-      for (int i = 0; i < N; i++){
+      for (int i = 0; i < m; i++){
         for (int j = 0; j < window_size; j++){
           // the leftmost ghost line = source temperature
           if (j < ghost_size){
-            grid_ind = i*N + j + offset;
+            grid_ind = i*n + j + offset;
             window[i*window_size + j] = source_temp;
           }
           else {
-            grid_ind = i*N + j + offset;
+            grid_ind = i*n + j + offset;
             window[i*window_size + j] = grid[grid_ind];
           }
           // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
@@ -61,15 +61,15 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
       }
       // std::cout << "-------------------------------------" << '\n';
     } else {
-      for (int i = 0; i < N; i++){
+      for (int i = 0; i < m; i++){
         for (int j = 0; j < window_size; j++){
           // the rightmost ghost line also = source temperature
           if (j >= window_size - ghost_size){
-            grid_ind = i*N + j + offset;
+            grid_ind = i*n + j + offset;
             window[i*window_size + j] = source_temp;
           }
           else {
-            grid_ind = i*N + j + offset;
+            grid_ind = i*n + j + offset;
             window[i*window_size + j] = grid[grid_ind];
           }
           // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
@@ -83,6 +83,14 @@ double* slice_matrix_rectangle(double* grid, int N, int rank_id, int block_size,
 
   return window;
 }
+
+// double* slice_ghostlines(double *window, int m, int ghost_size, bool is_left){
+//   double *ghostlines;
+//
+//   ghostlines = new double[m*ghost_size];
+//
+//
+// }
 
 void print_grid(double* grid, int m, int n){
   for (int i = 0; i < m; i++){
