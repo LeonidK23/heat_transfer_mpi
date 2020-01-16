@@ -23,7 +23,7 @@ int main() {
   std::uniform_real_distribution<> dis(0, N);
   int rand_row, rand_col;
   int ghost_zone, window_size;
-  double *grid;
+  double *grid, *block_matrix;
 
   // initialize grid
   grid = new double[N*N];
@@ -37,18 +37,24 @@ int main() {
   }
 
   // split matrix and send to other processors
-  int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
+  // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
+  int n_proc = 4;
   int block_size = 2;
-  int offset_without_ghost, offset_with_ghost;
   ghost_zone = 1;
   window_size = block_size + 2*ghost_zone;
-  for (int i = 0; i < n_proc_y; i++)
-    for (int j = 0; j < n_proc_x; j++){
+  block_matrix = new double[N*window_size];
+
+  std::cout << "Start grid:" << '\n';
+  print_grid(grid, N);
+  // for (int i = 0; i < n_proc_y/2; i++)
+  //   for (int j = 0; j < n_proc_x/2; j++){
+  for (int i = 0; i < n_proc; i++){
       // original offset - ghost zone
-      std::cout << i*n_proc_x + j << '\n';
-      offset_without_ghost = i*N*block_size + j*block_size;
-      offset_with_ghost = (i*N*block_size + j*block_size) - ghost_zone*N - ghost_zone;
-      grid = slice_matrix(grid, N, offset_with_ghost, window_size);
+      std::cout << i << '\n';
+      // offset_without_ghost = i*N*block_size + j*block_size;
+      // offset_with_ghost = (i*N*block_size + j*block_size) - ghost_zone*N - ghost_zone;
+      // grid = slice_matrix_rectangle(grid, N, offset_with_ghost, window_size, SOURCE_TEMPERATURE);
+      block_matrix = slice_matrix_rectangle(grid, N, i, block_size, ghost_zone, SOURCE_TEMPERATURE, i == 0 || i == n_proc-1);
       // std::cout << i << ' ' << j << ' ' << offset_without_ghost << '\n';
       // std::cout << i << ' ' << j << ' ' << offset_with_ghost << '\n';
       // std::cout << "----------------------------------" << '\n';
