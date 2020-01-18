@@ -6,7 +6,7 @@
 #include "src/auxiliary.hpp"
 
 int main(int argc, char *argv[]) {
-  const int N = 16;
+  const int N = 8;
   const int N_SOURCES = 5;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
   int num, rank;
   int ret = MPI_Init(&argc, &argv);
-  MPI_Request r, r1, r2;
+  MPI_Request r;
   MPI_Status stat;
 
   if(MPI_SUCCESS != ret)
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
   int n_proc = num;
   int block_size = N/(n_proc - 1);
-  ghost_zone = 4;
+  ghost_zone = 2;
   // window = block + ghost_lines
   window_size = block_size + 2*ghost_zone;
   window_matrix = new double[N*window_size];
@@ -70,23 +70,55 @@ int main(int argc, char *argv[]) {
       // std::cout << "New grid:" << '\n';
       // print_grid(grid, N);
   } else {
-    double *ghost_lines;
+    double *ghost_lines_left, *ghost_lines_right, *recv_ghostlines_left, *recv_ghostlines_right;
 
-    ghost_lines = new double[N*ghost_zone];
+    ghost_lines_right = new double[N*ghost_zone];
+    ghost_lines_left = new double[N*ghost_zone];
+    recv_ghostlines_left = new double[N*ghost_zone];
+    recv_ghostlines_right = new double[N*ghost_zone];
 
     // first receive from master processor
     MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
 
-    if (rank == 1){
-      std::cout << "---------------------------------" << '\n';
-      // print_grid(window_matrix, N, window_size);
-      // std::cout << "---------------------------------" << '\n';
+    // if (rank == 3){
       window_matrix = heat_transfer(window_matrix, N, window_size, ghost_zone, SOURCE_TEMPERATURE, ALPHA, H);
-      print_grid(window_matrix, N, window_size);
+      // if (rank == 1)
+      //   print_grid(window_matrix, N, window_size);
       // slice right ghost lines
-      ghost_lines = slice_matrix_rectangle(window_matrix, N, window_size, 0, ghost_zone, 0, SOURCE_TEMPERATURE, false, block_size);
-      print_grid(ghost_lines, N, ghost_zone);
-    }
+      ghost_lines_right = slice_matrix_rectangle(window_matrix, N, window_size, 0, ghost_zone, 0, SOURCE_TEMPERATURE, false, block_size);
+      // print_grid(ghost_lines, N, ghost_zone);
+      if (ghost_zone < block_size){
+        ghost_lines_left = slice_matrix_rectangle(window_matrix, N, window_size, 0, ghost_zone, 0, SOURCE_TEMPERATURE, false, ghost_zone);
+        // if (rank == 2)
+        //   print_grid(ghost_lines_left, N, ghost_zone);
+      } else
+        ghost_lines_left = ghost_lines_right;
+
+      // if not the border processors
+      if (rank != 0 && rank != n_proc - 2){
+        // std::cout << rank << '\n';
+        // exchange with the right neighbour
+        MPI_Sendrecv(ghost_lines_right, N*ghost_zone, MPI_DOUBLE, rank+1, 0, recv_ghostlines_right,
+                     N*ghost_zone, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &stat);
+
+        // exchange with the left neighbour
+        MPI_Sendrecv(ghost_lines_left, N*ghost_zone, MPI_DOUBLE, rank-1, 0, recv_ghostlines_left,
+                     N*ghost_zone, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &stat);
+       // if (rank == 1){
+       //   std::cout << "-------------------" << '\n';
+       //   print_grid(recv_ghostlines_right, N, ghost_zone);
+       // }
+
+      } else if (rank == 0){
+        // exchange only with the right neighbour
+        MPI_Sendrecv(ghost_lines_right, N*ghost_zone, MPI_DOUBLE, rank+1, 0, recv_ghostlines_right,
+                     N*ghost_zone, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &stat);
+      } else if (rank == n_proc - 2){
+        // exchange only with the left neighbour
+        MPI_Sendrecv(ghost_lines_left, N*ghost_zone, MPI_DOUBLE, rank-1, 0, recv_ghostlines_left,
+                     N*ghost_zone, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &stat);
+      }
+    // }
 
   }
 
