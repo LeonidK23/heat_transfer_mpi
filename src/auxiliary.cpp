@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "auxiliary.hpp"
 
@@ -108,9 +109,16 @@ double* reshape_grid(double* mat, int N, int block_size){
 }
 
 void print_grid(double* grid, int m, int n){
+  std::ofstream myfile;
+  myfile.open ("results.txt");
+
   for (int i = 0; i < m; i++){
-    for (int j = 0; j < n; j++)
-      std::cout << grid[i*n + j] << ' ';
-    std::cout << '\n';
+    for (int j = 0; j < n; j++){
+      // std::cout << grid[i*n + j] << ' ';
+      myfile << i << " " << j << " " << grid[i*n + j] << '\n';
+    }
+    // std::cout << '\n';
   }
+
+  myfile.close();
 }

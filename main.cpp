@@ -6,7 +6,7 @@
 #include "src/auxiliary.hpp"
 
 int main(int argc, char *argv[]) {
-  const int N = 16;
+  const int N = 32;
   const int N_SOURCES = 5;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
   int n_proc = num;
   int block_size = N/(n_proc - 1);
-  ghost_zone = 3;
+  ghost_zone = 5;
   // window = block + ghost_lines
   window_size = block_size + 2*ghost_zone;
   window_matrix = new double[N*window_size];
@@ -56,9 +56,9 @@ int main(int argc, char *argv[]) {
       grid[rand_row*N + rand_col] = SOURCE_TEMPERATURE;
     }
 
-    std::cout << "Start grid:" << '\n';
-    print_grid(grid, N, N);
-    std::cout << "----------------------" << '\n';
+    // std::cout << "Start grid:" << '\n';
+    // print_grid(grid, N, N);
+    // std::cout << "----------------------" << '\n';
     // split matrix and send to other processors
     // for (int i = 0; i < n_proc_y/2; i++)
     //   for (int j = 0; j < n_proc_x/2; j++){
@@ -146,8 +146,9 @@ int main(int argc, char *argv[]) {
   if (rank == n_proc - 1){
     grid = reshape_grid(rbuf, N, block_size);
 
-    std::cout << "Final grid:" << '\n';
+    // std::cout << "Final grid:" << '\n';
     print_grid(grid, N, N);
+    std::cout << "ready" << '\n';
 
     free(rbuf);
     free(grid);
