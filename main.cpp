@@ -1,17 +1,21 @@
 #include <iostream>
 #include <random>
 #include <mpi.h>
+#include <chrono>
 
 #include "src/transfer.hpp"
 #include "src/auxiliary.hpp"
 
+using std::chrono::system_clock;
+using std::chrono::duration;
+
 int main(int argc, char *argv[]) {
-  const int N = 32;
-  const int N_SOURCES = 5;
+  const int N = 128;
+  const int N_SOURCES = 8;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
   const double H = 1.0f;
-  const int N_ITER = 10;
+  const int N_ITER = 400;
 
   int num, rank;
   int ret = MPI_Init(&argc, &argv);
@@ -24,7 +28,8 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &num) ;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  std::mt19937 gen(std::random_device{}());
+  // std::mt19937 gen(std::random_device{}());
+  std::mt19937 gen(8);
   std::uniform_real_distribution<> dis(0, N);
   int rand_row, rand_col;
   int ghost_zone, window_size, offset;
@@ -33,7 +38,7 @@ int main(int argc, char *argv[]) {
   // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
   int n_proc = num;
   int block_size = N/(n_proc - 1);
-  ghost_zone = 5;
+  ghost_zone = 20;
   // window = block + ghost_lines
   window_size = block_size + 2*ghost_zone;
   window_matrix = new double[N*window_size];
@@ -84,7 +89,9 @@ int main(int argc, char *argv[]) {
     // first receive from master processor
     MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
 
-    for (int k = 0; k < N_ITER; k++){
+    auto start = system_clock::now();
+
+    for (int k = 0; k < N_ITER/ghost_zone; k++){
       window_matrix = heat_transfer(window_matrix, N, window_size, ghost_zone, SOURCE_TEMPERATURE, ALPHA, H);
       // if (rank == 0)
       //   print_grid(window_matrix, N, window_size);
@@ -129,7 +136,11 @@ int main(int argc, char *argv[]) {
         // insert received ghost lines on the left side
         insert_block(window_matrix, recv_ghostlines_left, 0, N, window_size, N, ghost_zone);
       }
+
     }
+
+    auto end = system_clock::now();
+    std::cout << "Computing time:" << duration<double>(end - start).count() << '\n';
 
     block_matrix = slice_matrix_rectangle(window_matrix, N, window_size, 0, block_size, 0, SOURCE_TEMPERATURE, false, ghost_zone);
 

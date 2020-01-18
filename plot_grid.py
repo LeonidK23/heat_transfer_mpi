@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import cm
 
 filename = "results.txt"
-N = 32
+N = 128
 
 with open(filename) as f:
     data = f.readlines()
@@ -20,10 +20,12 @@ X = X.reshape(X.shape[0]//N, N)
 Y = Y.reshape(Y.shape[0]//N, N)
 Z = Z.reshape(Z.shape[0]//N, N)
 
-fig = plt.figure()
-ax = Axes3D(fig)
-ax.plot_surface(X, Y, Z, cmap=cm.coolwarm)
-ax.set_title("Heat transfer")
-ax.set_zlabel("Temperature", rotation=2)
+# fig = plt.figure()
+# ax = Axes3D(fig)
+# ax.plot_surface(X, Y, Z, cmap=cm.coolwarm)
+# ax.set_title("Heat transfer")
+# ax.set_zlabel("Temperature", rotation=2)
+
+plt.imshow(Z)
 
 plt.show()
