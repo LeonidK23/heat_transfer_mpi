@@ -84,7 +84,7 @@ double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int bloc
   return window;
 }
 
-void insert_ghost_lines(double* window_matrix, double* ghost_lines, int offset, int m, int n, int gl_m, int gl_n){
+void insert_block(double* window_matrix, double* ghost_lines, int offset, int m, int n, int gl_m, int gl_n){
   int global_ind;
 
   for (int i = 0; i < gl_m; i++){
@@ -92,6 +92,19 @@ void insert_ghost_lines(double* window_matrix, double* ghost_lines, int offset, 
       window_matrix[offset + i*n + j] = ghost_lines[i*gl_n + j];
     }
   }
+}
+
+double* reshape_grid(double* mat, int N, int block_size){
+  double *new_mat = new double[N*N];
+
+  for (int b = 0; b < N/block_size; b++)
+    for (int i = 0; i < N; i++){
+      for (int j = 0; j < block_size; j++){
+        new_mat[b*block_size + i*N + j] = mat[b*N*block_size + i*block_size + j];
+      }
+    }
+
+  return new_mat;
 }
 
 void print_grid(double* grid, int m, int n){
