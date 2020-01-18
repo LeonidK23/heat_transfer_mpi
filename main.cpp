@@ -6,7 +6,7 @@
 #include "src/auxiliary.hpp"
 
 int main(int argc, char *argv[]) {
-  const int N = 8;
+  const int N = 16;
   const int N_SOURCES = 5;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
   int n_proc = num;
   int block_size = N/(n_proc - 1);
-  ghost_zone = 2;
+  ghost_zone = 3;
   // window = block + ghost_lines
   window_size = block_size + 2*ghost_zone;
   window_matrix = new double[N*window_size];
@@ -51,10 +51,8 @@ int main(int argc, char *argv[]) {
       grid[i] = 0;
 
     for (int i = 0; i < N_SOURCES; i++){
-      // rand_row = dis(gen);
-      // rand_col = dis(gen);
-      rand_row = 3;
-      rand_col = 0;
+      rand_row = dis(gen);
+      rand_col = dis(gen);
       grid[rand_row*N + rand_col] = SOURCE_TEMPERATURE;
     }
 
@@ -75,9 +73,6 @@ int main(int argc, char *argv[]) {
         // first send to all working processors
         MPI_Send(window_matrix, N*window_size, MPI_DOUBLE, rank_id, 0, MPI_COMM_WORLD);
       }
-      // std::cout << "New grid:" << '\n';
-      // print_grid(grid, N);
-
   } else {
     double *ghost_lines_left, *ghost_lines_right, *recv_ghostlines_left, *recv_ghostlines_right;
 
@@ -137,6 +132,11 @@ int main(int argc, char *argv[]) {
     }
 
     block_matrix = slice_matrix_rectangle(window_matrix, N, window_size, 0, block_size, 0, SOURCE_TEMPERATURE, false, ghost_zone);
+
+    free(ghost_lines_left);
+    free(ghost_lines_right);
+    free(recv_ghostlines_left);
+    free(recv_ghostlines_right);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -145,11 +145,17 @@ int main(int argc, char *argv[]) {
   MPI_Gather(block_matrix, N*block_size, MPI_DOUBLE, rbuf, block_size*N, MPI_DOUBLE, n_proc-1, MPI_COMM_WORLD);
   if (rank == n_proc - 1){
     grid = reshape_grid(rbuf, N, block_size);
+
+    std::cout << "Final grid:" << '\n';
+    print_grid(grid, N, N);
+
+    free(rbuf);
+    free(grid);
   }
 
   MPI_Finalize();
-  // free(window_matrix);
-  // free(grid);
+  free(window_matrix);
+  free(block_matrix);
 
   return 0;
 }
