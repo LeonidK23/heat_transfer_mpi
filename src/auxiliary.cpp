@@ -84,13 +84,15 @@ double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int bloc
   return window;
 }
 
-// double* slice_ghostlines(double *window, int m, int ghost_size, bool is_left){
-//   double *ghostlines;
-//
-//   ghostlines = new double[m*ghost_size];
-//
-//
-// }
+void insert_ghost_lines(double* window_matrix, double* ghost_lines, int offset, int m, int n, int gl_m, int gl_n){
+  int global_ind;
+
+  for (int i = 0; i < gl_m; i++){
+    for (int j = 0; j < gl_n; j++){
+      window_matrix[offset + i*n + j] = ghost_lines[i*gl_n + j];
+    }
+  }
+}
 
 void print_grid(double* grid, int m, int n){
   for (int i = 0; i < m; i++){
