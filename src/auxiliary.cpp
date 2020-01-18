@@ -23,9 +23,9 @@ double* slice_matrix_square(double* grid, int N, int offset, int window_size, in
 }
 
 
-double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border){
-  int grid_ind, offset, window_size;
-  offset = rank_id*block_size - ghost_size;
+double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border, int offset){
+  int grid_ind, window_size;
+  // offset = rank_id*block_size - ghost_size;
   window_size = block_size + 2*ghost_size;
 
   double* window = new double[window_size*m];
