@@ -6,8 +6,8 @@
 #include "src/auxiliary.hpp"
 
 int main(int argc, char *argv[]) {
-  const int N = 8;
-  const int N_SOURCES = 5;
+  const int N = 16;
+  const int N_SOURCES = 8;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
   const double H = 1.0f;
@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
 
   // int n_proc = 16, n_proc_x = 4, n_proc_y = 4;
   int n_proc = num;
-  int block_size = 2;
-  ghost_zone = 1;
+  int block_size = 4;
+  ghost_zone = 4;
   // window = block + ghost_lines
   window_size = block_size + 2*ghost_zone;
   window_matrix = new double[N*window_size];
@@ -85,15 +85,15 @@ int main(int argc, char *argv[]) {
       // slice right ghost lines
       ghost_lines = slice_matrix_rectangle(window_matrix, N, window_size, 2, ghost_zone, 0, SOURCE_TEMPERATURE, false);
       // TODO: find out, how which parameters should I choose to cut off ghost lines with size 1/2. Pay with rank_id value-
-      // TODO: change signature of function slice_matrix_rectangle: instead of block_size. which is used only once send offset.
-      print_grid(ghost_lines, N, ghost_zone);
+      // TODO: change signature of function slice_matrix_rectangle: send also offset, which will help by slicing of ghost lines
+      // print_grid(ghost_lines, N, ghost_zone);
     }
 
   }
 
   MPI_Finalize();
-  free(window_matrix);
-  free(grid);
+  // free(window_matrix);
+  // free(grid);
 
   return 0;
 }
