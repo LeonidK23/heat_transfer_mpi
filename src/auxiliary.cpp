@@ -3,22 +3,51 @@
 
 #include "auxiliary.hpp"
 
-double* slice_matrix_square(double* grid, int N, int offset, int window_size, int source_temp){
-  double* window = new double[window_size*window_size];
-  int grid_ind;
+double* slice_matrix_square(double* grid, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border, int offset_x, int offset_y, int n_rank_dim){
+  int grid_ind, window_size;
+  window_size = block_size + 2*ghost_size;
 
-  for (int i = 0; i < window_size; i++){
-    for (int j = 0; j < window_size; j++){
-      grid_ind = offset + i*N + j;
-      if (grid_ind < 0)
-        window[i*window_size + j] = source_temp;
-      else
+  double* window = new double[window_size*window_size];
+
+  if (!is_border){
+    for (int i = 0; i < window_size; i++){
+      for (int j = 0; j < window_size; j++){
+        grid_ind = offset_y*n + offset_x + i*n + j;
         window[i*window_size + j] = grid[grid_ind];
-      std::cout << grid_ind << ' ';
+        std::cout << grid_ind << ' ';
+      }
+      std::cout << '\n';
     }
-    // std::cout << '\n';
   }
-  // std::cout << "-------------------------------------" << '\n';
+  // else if (rank_id < n_rank_dim){
+  //     for (int i = 0; i < window_size; i++){
+  //       for (int j = 0; j < window_size; j++){
+  //         // the leftmost ghost line = source temperature
+  //         grid_ind = i*n + j + offset;
+  //         if (j < ghost_size){
+  //           window[i*window_size + j] = source_temp;
+  //         }
+  //         else {
+  //           window[i*window_size + j] = grid[grid_ind];
+  //         }
+  //       }
+  //     }
+  //   } else {
+  //     for (int i = 0; i < m; i++){
+  //       for (int j = 0; j < window_size; j++){
+  //         // the rightmost ghost line also = source temperature
+  //         if (j >= window_size - ghost_size){
+  //           grid_ind = i*n + j + offset;
+  //           window[i*window_size + j] = source_temp;
+  //         }
+  //         else {
+  //           grid_ind = i*n + j + offset;
+  //           window[i*window_size + j] = grid[grid_ind];
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   return window;
 }
