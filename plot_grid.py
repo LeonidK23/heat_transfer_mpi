@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import cm
 
 filename = "results.txt"
-N = 128
+N = 256
 
 with open(filename) as f:
     data = f.readlines()

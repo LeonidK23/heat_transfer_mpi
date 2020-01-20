@@ -26,7 +26,6 @@ double* slice_matrix_square(double* grid, int N, int offset, int window_size, in
 
 double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border, int offset){
   int grid_ind, window_size;
-  // offset = rank_id*block_size - ghost_size;
   window_size = block_size + 2*ghost_size;
 
   double* window = new double[window_size*m];
@@ -36,12 +35,8 @@ double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int bloc
       for (int j = 0; j < window_size; j++){
         grid_ind = i*n + j + offset;
         window[i*window_size + j] = grid[grid_ind];
-        // std::cout << grid_ind << ' ' << grid[grid_ind] << ' ';
-        // std::cout << window[i*window_size + j] << ' ';
       }
-      // std::cout << '\n';
     }
-    // std::cout << "-------------------------------------" << '\n';
   } else {
     if (rank_id == 0){
       for (int i = 0; i < m; i++){
@@ -55,12 +50,8 @@ double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int bloc
             grid_ind = i*n + j + offset;
             window[i*window_size + j] = grid[grid_ind];
           }
-          // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
-          // std::cout << window[i*window_size + j] << ' ';
         }
-        // std::cout << '\n';
       }
-      // std::cout << "-------------------------------------" << '\n';
     } else {
       for (int i = 0; i < m; i++){
         for (int j = 0; j < window_size; j++){
@@ -73,12 +64,8 @@ double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int bloc
             grid_ind = i*n + j + offset;
             window[i*window_size + j] = grid[grid_ind];
           }
-          // std::cout << grid_ind << ' ' << window[i*window_size + j] << ' ';
-          // std::cout << window[i*window_size + j] << ' ';
         }
-        // std::cout << '\n';
       }
-      // std::cout << "-------------------------------------" << '\n';
     }
   }
 
@@ -108,16 +95,20 @@ double* reshape_grid(double* mat, int N, int block_size){
   return new_mat;
 }
 
-void print_grid(double* grid, int m, int n){
+void print_grid(double* grid, int m, int n, bool to_file){
   std::ofstream myfile;
-  myfile.open ("results.txt");
+  if (to_file == true)
+    myfile.open ("results.txt");
 
   for (int i = 0; i < m; i++){
     for (int j = 0; j < n; j++){
-      // std::cout << grid[i*n + j] << ' ';
-      myfile << i << " " << j << " " << grid[i*n + j] << '\n';
+      if (to_file == true)
+        myfile << i << " " << j << " " << grid[i*n + j] << '\n';
+      else
+        std::cout << grid[i*n + j] << ' ';
     }
-    // std::cout << '\n';
+    if (to_file == false)
+      std::cout << '\n';
   }
 
   myfile.close();
