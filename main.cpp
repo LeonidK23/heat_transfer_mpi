@@ -73,18 +73,14 @@ int main(int argc, char *argv[]) {
         // std::cout << "First send to processor " << rank_id << '\n';
         // block_matrix = slice_matrix_rectangle(grid, N, offset_with_ghost, window_size, SOURCE_TEMPERATURE);
         rank_id = i*n_proc_x + j;
-        if (rank_id == 4){
-          offset_x = j*block_size - GHOST_ZONE;
-          offset_y = i*block_size - GHOST_ZONE;
-          window_matrix = slice_matrix_square(grid, N, rank_id, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
-                                                 j == 0 || j == n_proc_x - 1 || i == 0 || i == n_proc_y - 1, offset_x, offset_y, n_proc_x);
-          print_grid(window_matrix, window_size, window_size, false);
-        }
+        offset_x = j*block_size - GHOST_ZONE;
+        offset_y = i*block_size - GHOST_ZONE;
+        window_matrix = slice_matrix_square(grid, N, rank_id, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
+                                               j == 0 || j == n_proc_x - 1 || i == 0 || i == n_proc_y - 1, offset_x, offset_y, n_proc_x);
         // first send to all working processors
-        // MPI_Send(window_matrix, N*window_size, MPI_DOUBLE, rank_id, 0, MPI_COMM_WORLD);
+        MPI_Send(window_matrix, N*window_size, MPI_DOUBLE, rank_id, 0, MPI_COMM_WORLD);
       }
-  }
-  // else {
+  } else {
   //   double *ghost_lines_left, *ghost_lines_right, *recv_ghostlines_left, *recv_ghostlines_right;
   //
   //   ghost_lines_right = new double[N*ghost_zone];
@@ -93,7 +89,12 @@ int main(int argc, char *argv[]) {
   //   recv_ghostlines_right = new double[N*ghost_zone];
   //
   //   // first receive from master processor
-  //   MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
+    MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
+
+    print_grid(window_matrix, window_size, window_size, false);
+    std::cout << "-------------------------" << '\n';
+    window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H);
+    print_grid(window_matrix, window_size, window_size, false);
   //
   //   auto start = system_clock::now();
   //
@@ -155,7 +156,7 @@ int main(int argc, char *argv[]) {
   //   free(ghost_lines_right);
   //   free(recv_ghostlines_left);
   //   free(recv_ghostlines_right);
-  // }
+  }
   //
   // MPI_Barrier(MPI_COMM_WORLD);
   //
