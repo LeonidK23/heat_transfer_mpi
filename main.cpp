@@ -12,12 +12,12 @@ using std::chrono::duration;
 
 int main(int argc, char *argv[]) {
   const int N = 9;
-  const int N_SOURCES = 5;
+  const int N_SOURCES = 8;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
   const double H = 1.0f;
   const int N_ITER = 1;
-  const int GHOST_ZONE = 3;
+  const int GHOST_ZONE = 2;
 
   int num, rank;
   int ret = MPI_Init(&argc, &argv);
@@ -74,12 +74,11 @@ int main(int argc, char *argv[]) {
         // block_matrix = slice_matrix_rectangle(grid, N, offset_with_ghost, window_size, SOURCE_TEMPERATURE);
         rank_id = i*n_proc_x + j;
         if (rank_id == 4){
-        offset_x = j*block_size - GHOST_ZONE;
-        offset_y = i*block_size - GHOST_ZONE;
-        window_matrix = slice_matrix_square(grid, N, rank_id, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
-                                               j == 0 || j == n_proc_x - 1 || i == 0 || i == n_proc_y - 1, offset_x, offset_y, n_proc_x);
-
-          // print_grid(window_matrix, N, window_size, false);
+          offset_x = j*block_size - GHOST_ZONE;
+          offset_y = i*block_size - GHOST_ZONE;
+          window_matrix = slice_matrix_square(grid, N, rank_id, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
+                                                 j == 0 || j == n_proc_x - 1 || i == 0 || i == n_proc_y - 1, offset_x, offset_y, n_proc_x);
+          print_grid(window_matrix, window_size, window_size, false);
         }
         // first send to all working processors
         // MPI_Send(window_matrix, N*window_size, MPI_DOUBLE, rank_id, 0, MPI_COMM_WORLD);

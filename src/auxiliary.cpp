@@ -14,40 +14,50 @@ double* slice_matrix_square(double* grid, int n, int rank_id, int block_size, in
       for (int j = 0; j < window_size; j++){
         grid_ind = offset_y*n + offset_x + i*n + j;
         window[i*window_size + j] = grid[grid_ind];
-        std::cout << grid_ind << ' ';
+        // std::cout << grid_ind << ' ';
       }
-      std::cout << '\n';
+      // std::cout << '\n';
     }
-  }
-  // else if (rank_id < n_rank_dim){
-  //     for (int i = 0; i < window_size; i++){
-  //       for (int j = 0; j < window_size; j++){
-  //         // the leftmost ghost line = source temperature
-  //         grid_ind = i*n + j + offset;
-  //         if (j < ghost_size){
-  //           window[i*window_size + j] = source_temp;
-  //         }
-  //         else {
-  //           window[i*window_size + j] = grid[grid_ind];
-  //         }
-  //       }
-  //     }
-  //   } else {
-  //     for (int i = 0; i < m; i++){
-  //       for (int j = 0; j < window_size; j++){
-  //         // the rightmost ghost line also = source temperature
-  //         if (j >= window_size - ghost_size){
-  //           grid_ind = i*n + j + offset;
-  //           window[i*window_size + j] = source_temp;
-  //         }
-  //         else {
-  //           grid_ind = i*n + j + offset;
-  //           window[i*window_size + j] = grid[grid_ind];
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+    // left border of processors grid
+  } else if (rank_id % n_rank_dim == 0){
+      for (int i = 0; i < window_size; i++){
+        for (int j = 0; j < window_size; j++){
+          grid_ind = offset_y*n + offset_x + i*n + j;
+          // if left ghost line, or if left top ghost line or if left bottom ghost line
+          if (j < ghost_size || (rank_id == 0 &&  i < ghost_size) || (rank_id == n_rank_dim * (n_rank_dim-1) && i >= window_size - ghost_size)){
+            window[i*window_size + j] = source_temp;
+          }
+          else {
+            window[i*window_size + j] = grid[grid_ind];
+          }
+        }
+      }
+    } else if ((rank_id+1) % n_rank_dim == 0){
+      for (int i = 0; i < window_size; i++){
+        for (int j = 0; j < window_size; j++){
+          grid_ind = offset_y*n + offset_x + i*n + j;
+          // if right ghost line, or if right top ghost line or if right bottom ghost line
+          if (j >= window_size - ghost_size || (rank_id == n_rank_dim - 1 && i < ghost_size) || (rank_id == n_rank_dim*n_rank_dim - 1 && i >= window_size - ghost_size)){
+            window[i*window_size + j] = source_temp;
+          } else {
+            window[i*window_size + j] = grid[grid_ind];
+          }
+        }
+      }
+    } else {
+      // only top or only bottom processor
+      for (int i = 0; i < window_size; i++){
+        for (int j = 0; j < window_size; j++){
+          grid_ind = offset_y*n + offset_x + i*n + j;
+          // if top ghost line, or if bottom ghost line
+          if ((rank_id < n_rank_dim && i < ghost_size) || (rank_id >= n_rank_dim * (n_rank_dim-1) && i >= window_size - ghost_size)){
+            window[i*window_size + j] = source_temp;
+          } else {
+            window[i*window_size + j] = grid[grid_ind];
+          }
+        }
+      }
+    }
 
   return window;
 }
