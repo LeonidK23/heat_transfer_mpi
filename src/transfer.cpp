@@ -74,7 +74,7 @@ double* heat_transfer_2d(double* grid, int window_size, int ghost_size, const do
 
   for(k = 0; k < ghost_size; k++){
     std::swap(old_grid, grid);
-    std::cout << "iter" << '\n';
+    // std::cout << "iter" << '\n';
     for(i = 0; i < window_size; i++)
       // on each iteration reduce size of window because the left- and
       // rightmost ghost columns cannot be updated
