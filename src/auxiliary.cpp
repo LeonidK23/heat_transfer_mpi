@@ -59,7 +59,6 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
         }
       }
     }
-    // std::cout << grid_ind << ' ';
 
   return window;
 }
