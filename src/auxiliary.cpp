@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <string>
 
 #include "auxiliary.hpp"
 
@@ -149,10 +150,13 @@ double* reshape_grid_2d(double* mat, int N, int block_size, const int n_blocks){
   return new_mat;
 }
 
-void print_grid(double* grid, int m, int n, bool to_file){
+void print_grid(double* grid, int m, int n, bool to_file, int iter){
   std::ofstream myfile;
+  std::string filename ("data/results_");
+  filename += std::to_string(iter)+".txt";
+
   if (to_file == true)
-    myfile.open ("results.txt");
+    myfile.open (filename);
 
   for (int i = 0; i < m; i++){
     for (int j = 0; j < n; j++){
