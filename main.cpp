@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
   } else {
     double *ghost_lines_left, *ghost_lines_right, *ghost_lines_top, *ghost_lines_bottom;
     double *ghost_lines_topleft, *ghost_lines_topright, *ghost_lines_bottomleft, *ghost_lines_bottomright;
-    double *recv_ghostlines_left, *recv_ghostlines_right;
+    double *recv_ghostlines_left, *recv_ghostlines_right, *recv_ghostlines_top, *recv_ghostlines_bottom;
   //
     // ghost_lines_right = new double[N*ghost_zone];
     // ghost_lines_left = new double[N*ghost_zone];
@@ -93,44 +93,92 @@ int main(int argc, char *argv[]) {
   //   // first receive from master processor
     MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
 
-    if (rank == 0){
-      // print_grid(window_matrix, window_size, window_size, false);
-      std::cout << "-------------------------" << '\n';
-      window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H);
-      print_grid(window_matrix, window_size, window_size, false);
-      std::cout << "-------------------------" << '\n';
+    if (rank == 0 || rank == 1){
+    // print_grid(window_matrix, window_size, window_size, false);
+    // std::cout << "-------------------------" << '\n';
+    window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H);
+    // print_grid(window_matrix, window_size, window_size, false);
+    // std::cout << "-------------------------" << '\n';
 
-      // slice right block
-      ghost_lines_left = new double[block_size*GHOST_ZONE];
-      ghost_lines_right = new double[block_size*GHOST_ZONE];
-      ghost_lines_top = new double[block_size*GHOST_ZONE];
-      ghost_lines_bottom = new double[block_size*GHOST_ZONE];
-      ghost_lines_topleft = new double[GHOST_ZONE*GHOST_ZONE];
-      ghost_lines_topright = new double[GHOST_ZONE*GHOST_ZONE];
-      ghost_lines_bottomleft = new double[GHOST_ZONE*GHOST_ZONE];
-      ghost_lines_bottomright = new double[GHOST_ZONE*GHOST_ZONE];
+    // slice right block
+    ghost_lines_left = new double[block_size*GHOST_ZONE];
+    ghost_lines_right = new double[block_size*GHOST_ZONE];
+    ghost_lines_top = new double[block_size*GHOST_ZONE];
+    ghost_lines_bottom = new double[block_size*GHOST_ZONE];
+    ghost_lines_topleft = new double[GHOST_ZONE*GHOST_ZONE];
+    ghost_lines_topright = new double[GHOST_ZONE*GHOST_ZONE];
+    ghost_lines_bottomleft = new double[GHOST_ZONE*GHOST_ZONE];
+    ghost_lines_bottomright = new double[GHOST_ZONE*GHOST_ZONE];
+    recv_ghostlines_left = new double[block_size*GHOST_ZONE];
+    recv_ghostlines_right = new double[block_size*GHOST_ZONE];
+    recv_ghostlines_top = new double[block_size*GHOST_ZONE];
+    recv_ghostlines_bottom = new double[block_size*GHOST_ZONE];
 
-      ghost_lines_right = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, block_size, 0, SOURCE_TEMPERATURE, false, block_size, GHOST_ZONE, 0);
-      ghost_lines_left = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, block_size, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
-      ghost_lines_top = slice_matrix(window_matrix, window_size, 0, block_size, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
-      ghost_lines_bottom = slice_matrix(window_matrix, window_size, 0, block_size, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, block_size, 0);
-      ghost_lines_topleft = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
-      ghost_lines_topright = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, block_size, GHOST_ZONE, 0);
-      ghost_lines_bottomleft = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, block_size, 0);
-      ghost_lines_bottomright = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, block_size, block_size, 0);
+    ghost_lines_right = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, block_size, 0, SOURCE_TEMPERATURE, false, block_size, GHOST_ZONE, 0);
+    ghost_lines_left = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, block_size, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
+    ghost_lines_top = slice_matrix(window_matrix, window_size, 0, block_size, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
+    ghost_lines_bottom = slice_matrix(window_matrix, window_size, 0, block_size, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, block_size, 0);
+    ghost_lines_topleft = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
+    ghost_lines_topright = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, block_size, GHOST_ZONE, 0);
+    ghost_lines_bottomleft = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, block_size, 0);
+    ghost_lines_bottomright = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, block_size, block_size, 0);
 
-      std::cout << "-------------------------" << '\n';
-      print_grid(ghost_lines_bottomright, GHOST_ZONE, GHOST_ZONE, false);
 
-      free(ghost_lines_left);
-      free(ghost_lines_right);
-      free(ghost_lines_top);
-      free(ghost_lines_bottom);
-      free(ghost_lines_topleft);
-      free(ghost_lines_topright);
-      free(ghost_lines_bottomleft);
-      free(ghost_lines_bottomright);
+
+    // if not left border processor - exchange with tne left neighbour
+    if (rank % n_proc_x != 0){
+      MPI_Sendrecv(ghost_lines_left, block_size*GHOST_ZONE, MPI_DOUBLE, rank-1, 0, recv_ghostlines_left,
+                   block_size*GHOST_ZONE, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &stat);
+
+                   if (rank == 1){
+                     print_grid(window_matrix, window_size, window_size, false);
+                     std::cout << "-------------------------" << '\n';
+                     print_grid(ghost_lines_left, block_size, GHOST_ZONE, false);
+                     std::cout << "-------------------------" << '\n';
+                     print_grid(recv_ghostlines_left, block_size, GHOST_ZONE, false);
+
+                   }
+
     }
+    // if not right border processor - exchange with tne right neighbour
+    if ((rank + 1)%n_proc_x != 0 && rank != 1){
+      MPI_Sendrecv(ghost_lines_right, block_size*GHOST_ZONE, MPI_DOUBLE, rank+1, 0, recv_ghostlines_right,
+                   block_size*GHOST_ZONE, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, &stat);
+
+                   // if (rank == 0){
+                   //   print_grid(window_matrix, window_size, window_size, false);
+                   //   std::cout << "-------------------------" << '\n';
+                   //   print_grid(ghost_lines_right, block_size, GHOST_ZONE, false);
+                   //   std::cout << "-------------------------" << '\n';
+                   //   print_grid(recv_ghostlines_right, block_size, GHOST_ZONE, false);
+                   //
+                   // }
+    }
+    // // if not the top border processor - exchange with the neighbour on the top
+    // if (rank_id >= n_proc_x){
+    //   MPI_Sendrecv(ghost_lines_top, block_size*GHOST_ZONE, MPI_DOUBLE, rank-n_proc_x, 0, recv_ghostlines_top,
+    //                block_size*GHOST_ZONE, MPI_DOUBLE, rank-n_proc_x, 0, MPI_COMM_WORLD, &stat);
+    // }
+    // if (rank_id < n_proc_x*(n_proc_y - 1)){
+    //   MPI_Sendrecv(ghost_lines_bottom, block_size*GHOST_ZONE, MPI_DOUBLE, rank+n_proc_x, 0, recv_ghostlines_bottom,
+    //                block_size*GHOST_ZONE, MPI_DOUBLE, rank+n_proc_x, 0, MPI_COMM_WORLD, &stat);
+    // }
+
+    // free(ghost_lines_left);
+    // free(ghost_lines_right);
+    // free(ghost_lines_top);
+    // free(ghost_lines_bottom);
+    // free(ghost_lines_topleft);
+    // free(ghost_lines_topright);
+    // free(ghost_lines_bottomleft);
+    // free(ghost_lines_bottomright);
+    // free(recv_ghostlines_left);
+    // free(recv_ghostlines_right);
+    // free(recv_ghostlines_top);
+    // free(recv_ghostlines_bottom);
+
+
+  }
   //
   //   auto start = system_clock::now();
   //
