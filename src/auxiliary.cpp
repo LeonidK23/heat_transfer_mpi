@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 #include "auxiliary.hpp"
 
@@ -15,7 +16,6 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
       for (int j = 0; j < window_size_x; j++){
         grid_ind = offset_y*n + offset_x + i*n + j;
         window[i*window_size_x + j] = grid[grid_ind];
-        // std::cout << grid_ind << ' '<< offset_x << ' '<< offset_y << ' ';
       }
       // std::cout << '\n';
     }
@@ -51,7 +51,7 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
         for (int j = 0; j < window_size_x; j++){
           grid_ind = offset_y*n + offset_x + i*n + j;
           // if top ghost line, or if bottom ghost line
-          if ((rank_id < n_rank_dim && i < ghost_size) || (rank_id >= n_rank_dim * (n_rank_dim-1) && i >= window_size_x - ghost_size)){
+          if ((rank_id < n_rank_dim && i < ghost_size) || (rank_id >= n_rank_dim * (n_rank_dim-1) && i >= window_size_y - ghost_size)){
             window[i*window_size_x + j] = source_temp;
           } else {
             window[i*window_size_x + j] = grid[grid_ind];
@@ -59,6 +59,7 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
         }
       }
     }
+    // std::cout << grid_ind << ' ';
 
   return window;
 }
@@ -131,6 +132,20 @@ double* reshape_grid(double* mat, int N, int block_size){
         new_mat[b*block_size + i*N + j] = mat[b*N*block_size + i*block_size + j];
       }
     }
+
+  return new_mat;
+}
+
+
+double* reshape_grid_2d(double* mat, int N, int block_size, const int n_blocks){
+  double *new_mat = new double[N*N];
+  int n_blocks_row = std::sqrt(n_blocks);
+
+  for (int b = 0; b < n_blocks_row; b++)
+    for (int b_x = 0; b_x < n_blocks_row; b_x++)
+      for (int i = 0; i < block_size; i++)
+        for (int j = 0; j < block_size; j++)
+          new_mat[b*block_size*N + b_x*block_size + i*N + j] = mat[b*n_blocks_row*block_size*block_size + b_x*block_size*block_size + i*block_size + j];
 
   return new_mat;
 }
