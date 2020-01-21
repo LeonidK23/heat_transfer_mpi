@@ -3,57 +3,58 @@
 
 #include "auxiliary.hpp"
 
-double* slice_matrix_square(double* grid, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border, int offset_x, int offset_y, int n_rank_dim){
-  int grid_ind, window_size;
-  window_size = block_size + 2*ghost_size;
+double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int block_size_y, int ghost_size, double source_temp, bool is_border, int offset_x, int offset_y, int n_rank_dim){
+  int grid_ind, window_size_x, window_size_y;
+  window_size_x = block_size_x + 2*ghost_size;
+  window_size_y = block_size_y + 2*ghost_size;
 
-  double* window = new double[window_size*window_size];
+  double* window = new double[window_size_x*window_size_y];
 
   if (!is_border){
-    for (int i = 0; i < window_size; i++){
-      for (int j = 0; j < window_size; j++){
+    for (int i = 0; i < window_size_y; i++){
+      for (int j = 0; j < window_size_x; j++){
         grid_ind = offset_y*n + offset_x + i*n + j;
-        window[i*window_size + j] = grid[grid_ind];
-        // std::cout << grid_ind << ' ';
+        window[i*window_size_x + j] = grid[grid_ind];
+        // std::cout << grid_ind << ' '<< offset_x << ' '<< offset_y << ' ';
       }
       // std::cout << '\n';
     }
     // left border of processors grid
   } else if (rank_id % n_rank_dim == 0){
-      for (int i = 0; i < window_size; i++){
-        for (int j = 0; j < window_size; j++){
+      for (int i = 0; i < window_size_y; i++){
+        for (int j = 0; j < window_size_x; j++){
           grid_ind = offset_y*n + offset_x + i*n + j;
           // if left ghost line, or if left top ghost line or if left bottom ghost line
-          if (j < ghost_size || (rank_id == 0 &&  i < ghost_size) || (rank_id == n_rank_dim * (n_rank_dim-1) && i >= window_size - ghost_size)){
-            window[i*window_size + j] = source_temp;
+          if (j < ghost_size || (rank_id == 0 &&  i < ghost_size) || (rank_id == n_rank_dim * (n_rank_dim-1) && i >= window_size_y - ghost_size)){
+            window[i*window_size_x + j] = source_temp;
           }
           else {
-            window[i*window_size + j] = grid[grid_ind];
+            window[i*window_size_x + j] = grid[grid_ind];
           }
         }
       }
     } else if ((rank_id+1) % n_rank_dim == 0){
-      for (int i = 0; i < window_size; i++){
-        for (int j = 0; j < window_size; j++){
+      for (int i = 0; i < window_size_y; i++){
+        for (int j = 0; j < window_size_x; j++){
           grid_ind = offset_y*n + offset_x + i*n + j;
           // if right ghost line, or if right top ghost line or if right bottom ghost line
-          if (j >= window_size - ghost_size || (rank_id == n_rank_dim - 1 && i < ghost_size) || (rank_id == n_rank_dim*n_rank_dim - 1 && i >= window_size - ghost_size)){
-            window[i*window_size + j] = source_temp;
+          if (j >= window_size_x - ghost_size || (rank_id == n_rank_dim - 1 && i < ghost_size) || (rank_id == n_rank_dim*n_rank_dim - 1 && i >= window_size_y - ghost_size)){
+            window[i*window_size_x + j] = source_temp;
           } else {
-            window[i*window_size + j] = grid[grid_ind];
+            window[i*window_size_x + j] = grid[grid_ind];
           }
         }
       }
     } else {
       // only top or only bottom processor
-      for (int i = 0; i < window_size; i++){
-        for (int j = 0; j < window_size; j++){
+      for (int i = 0; i < window_size_y; i++){
+        for (int j = 0; j < window_size_x; j++){
           grid_ind = offset_y*n + offset_x + i*n + j;
           // if top ghost line, or if bottom ghost line
-          if ((rank_id < n_rank_dim && i < ghost_size) || (rank_id >= n_rank_dim * (n_rank_dim-1) && i >= window_size - ghost_size)){
-            window[i*window_size + j] = source_temp;
+          if ((rank_id < n_rank_dim && i < ghost_size) || (rank_id >= n_rank_dim * (n_rank_dim-1) && i >= window_size_x - ghost_size)){
+            window[i*window_size_x + j] = source_temp;
           } else {
-            window[i*window_size + j] = grid[grid_ind];
+            window[i*window_size_x + j] = grid[grid_ind];
           }
         }
       }

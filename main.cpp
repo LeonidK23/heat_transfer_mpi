@@ -75,26 +75,62 @@ int main(int argc, char *argv[]) {
         rank_id = i*n_proc_x + j;
         offset_x = j*block_size - GHOST_ZONE;
         offset_y = i*block_size - GHOST_ZONE;
-        window_matrix = slice_matrix_square(grid, N, rank_id, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
+        window_matrix = slice_matrix(grid, N, rank_id, block_size, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
                                                j == 0 || j == n_proc_x - 1 || i == 0 || i == n_proc_y - 1, offset_x, offset_y, n_proc_x);
         // first send to all working processors
         MPI_Send(window_matrix, N*window_size, MPI_DOUBLE, rank_id, 0, MPI_COMM_WORLD);
       }
   } else {
-  //   double *ghost_lines_left, *ghost_lines_right, *recv_ghostlines_left, *recv_ghostlines_right;
+    double *ghost_lines_left, *ghost_lines_right, *ghost_lines_top, *ghost_lines_bottom;
+    double *ghost_lines_topleft, *ghost_lines_topright, *ghost_lines_bottomleft, *ghost_lines_bottomright;
+    double *recv_ghostlines_left, *recv_ghostlines_right;
   //
-  //   ghost_lines_right = new double[N*ghost_zone];
-  //   ghost_lines_left = new double[N*ghost_zone];
-  //   recv_ghostlines_left = new double[N*ghost_zone];
-  //   recv_ghostlines_right = new double[N*ghost_zone];
+    // ghost_lines_right = new double[N*ghost_zone];
+    // ghost_lines_left = new double[N*ghost_zone];
+    // recv_ghostlines_left = new double[N*ghost_zone];
+    // recv_ghostlines_right = new double[N*ghost_zone];
   //
   //   // first receive from master processor
     MPI_Recv(window_matrix, N*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
 
-    print_grid(window_matrix, window_size, window_size, false);
-    std::cout << "-------------------------" << '\n';
-    window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H);
-    print_grid(window_matrix, window_size, window_size, false);
+    if (rank == 0){
+      // print_grid(window_matrix, window_size, window_size, false);
+      std::cout << "-------------------------" << '\n';
+      window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H);
+      print_grid(window_matrix, window_size, window_size, false);
+      std::cout << "-------------------------" << '\n';
+
+      // slice right block
+      ghost_lines_left = new double[block_size*GHOST_ZONE];
+      ghost_lines_right = new double[block_size*GHOST_ZONE];
+      ghost_lines_top = new double[block_size*GHOST_ZONE];
+      ghost_lines_bottom = new double[block_size*GHOST_ZONE];
+      ghost_lines_topleft = new double[GHOST_ZONE*GHOST_ZONE];
+      ghost_lines_topright = new double[GHOST_ZONE*GHOST_ZONE];
+      ghost_lines_bottomleft = new double[GHOST_ZONE*GHOST_ZONE];
+      ghost_lines_bottomright = new double[GHOST_ZONE*GHOST_ZONE];
+
+      ghost_lines_right = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, block_size, 0, SOURCE_TEMPERATURE, false, block_size, GHOST_ZONE, 0);
+      ghost_lines_left = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, block_size, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
+      ghost_lines_top = slice_matrix(window_matrix, window_size, 0, block_size, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
+      ghost_lines_bottom = slice_matrix(window_matrix, window_size, 0, block_size, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, block_size, 0);
+      ghost_lines_topleft = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
+      ghost_lines_topright = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, block_size, GHOST_ZONE, 0);
+      ghost_lines_bottomleft = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, block_size, 0);
+      ghost_lines_bottomright = slice_matrix(window_matrix, window_size, 0, GHOST_ZONE, GHOST_ZONE, 0, SOURCE_TEMPERATURE, false, block_size, block_size, 0);
+
+      std::cout << "-------------------------" << '\n';
+      print_grid(ghost_lines_bottomright, GHOST_ZONE, GHOST_ZONE, false);
+
+      free(ghost_lines_left);
+      free(ghost_lines_right);
+      free(ghost_lines_top);
+      free(ghost_lines_bottom);
+      free(ghost_lines_topleft);
+      free(ghost_lines_topright);
+      free(ghost_lines_bottomleft);
+      free(ghost_lines_bottomright);
+    }
   //
   //   auto start = system_clock::now();
   //
