@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
   const double H = 1.0f;
-  const int N_ITER = 200;
+  const int N_ITER = 400;
   const int GHOST_ZONE = 10;
   const int SAVE_FREQUENCY = 1;
 
@@ -74,7 +74,6 @@ int main(int argc, char *argv[]) {
         rank_id = i*n_proc_x + j;
         offset_x = j*block_size - GHOST_ZONE;
         offset_y = i*block_size - GHOST_ZONE;
-        // std::cout << rank_id << ' ' << offset_x << ' ' << offset_y << '\n';
         window_matrix = slice_matrix(grid, N, rank_id, block_size, block_size, GHOST_ZONE, SOURCE_TEMPERATURE,
                                                j == 0 || j == n_proc_x - 1 || i == 0 || i == n_proc_y - 1, offset_x, offset_y, n_proc_x);
         // first send to all working processors

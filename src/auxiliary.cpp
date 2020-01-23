@@ -64,55 +64,6 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
   return window;
 }
 
-
-double* slice_matrix_rectangle(double* grid, int m, int n, int rank_id, int block_size, int ghost_size, double source_temp, bool is_border, int offset){
-  int grid_ind, window_size;
-  window_size = block_size + 2*ghost_size;
-
-  double* window = new double[window_size*m];
-
-  if (!is_border){
-    for (int i = 0; i < m; i++){
-      for (int j = 0; j < window_size; j++){
-        grid_ind = i*n + j + offset;
-        window[i*window_size + j] = grid[grid_ind];
-      }
-    }
-  } else {
-    if (rank_id == 0){
-      for (int i = 0; i < m; i++){
-        for (int j = 0; j < window_size; j++){
-          // the leftmost ghost line = source temperature
-          if (j < ghost_size){
-            grid_ind = i*n + j + offset;
-            window[i*window_size + j] = source_temp;
-          }
-          else {
-            grid_ind = i*n + j + offset;
-            window[i*window_size + j] = grid[grid_ind];
-          }
-        }
-      }
-    } else {
-      for (int i = 0; i < m; i++){
-        for (int j = 0; j < window_size; j++){
-          // the rightmost ghost line also = source temperature
-          if (j >= window_size - ghost_size){
-            grid_ind = i*n + j + offset;
-            window[i*window_size + j] = source_temp;
-          }
-          else {
-            grid_ind = i*n + j + offset;
-            window[i*window_size + j] = grid[grid_ind];
-          }
-        }
-      }
-    }
-  }
-
-  return window;
-}
-
 void insert_block(double* window_matrix, double* ghost_lines, int offset, int m, int n, int gl_m, int gl_n){
   int global_ind;
 
@@ -122,20 +73,6 @@ void insert_block(double* window_matrix, double* ghost_lines, int offset, int m,
     }
   }
 }
-
-double* reshape_grid(double* mat, int N, int block_size){
-  double *new_mat = new double[N*N];
-
-  for (int b = 0; b < N/block_size; b++)
-    for (int i = 0; i < N; i++){
-      for (int j = 0; j < block_size; j++){
-        new_mat[b*block_size + i*N + j] = mat[b*N*block_size + i*block_size + j];
-      }
-    }
-
-  return new_mat;
-}
-
 
 double* reshape_grid_2d(double* mat, int N, int block_size, const int n_blocks){
   double *new_mat = new double[N*N];
