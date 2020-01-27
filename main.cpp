@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 
 #include "src/transfer.hpp"
 #include "src/auxiliary.hpp"
@@ -11,14 +12,20 @@ using std::chrono::system_clock;
 using std::chrono::duration;
 
 int main(int argc, char *argv[]) {
-  const int N = 216;
+  int N = 216;
+  int N_ITER = 400;
+  int GHOST_ZONE = 10;
   const int N_SOURCES = 8;
   const double SOURCE_TEMPERATURE = 25;
   const double ALPHA = 0.2;
   const double H = 1.0f;
-  const int N_ITER = 400;
-  const int GHOST_ZONE = 10;
   const int SAVE_FREQUENCY = 1;
+
+  if (argc > 1){
+    N = atoi(argv[1]);
+    GHOST_ZONE = atoi(argv[2]);
+    N_ITER = atoi(argv[3]);
+  }
 
   int num, rank;
   int ret = MPI_Init(&argc, &argv);

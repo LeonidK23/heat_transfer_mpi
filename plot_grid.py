@@ -1,11 +1,17 @@
 import os
+import argparse
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 
-N = 216
+parser = argparse.ArgumentParser(description='Process parameters of the grid.')
+parser.add_argument('--n', metavar='N', default=216,
+                    help='dimension of the grid')
+
+args = parser.parse_args()
+N = int(args.n)
 
 for file in os.listdir("data/"):
     if file.endswith(".txt"):
