@@ -4,7 +4,7 @@
 
 #include "transfer.hpp"
 
-double* heat_transfer_2d(double* grid, int window_size, int ghost_size, const double source_temperature, const double alpha, const double h){
+double* heat_transfer_2d(double* grid, int window_size, int ghost_size, const double source_temperature, const double alpha, const double h, const int delta_t){
   int i, j, k, current_index;
   double left, right, bottom, top, current_point;
   double* old_grid;
@@ -40,7 +40,7 @@ double* heat_transfer_2d(double* grid, int window_size, int ghost_size, const do
             // if (i == 1 && j == 2)
             //   std::cout << left << '\n';
 
-            grid[current_index] = current_point + alpha * (left+right+top+bottom-4*current_point) / pow(h, 2);
+            grid[current_index] = current_point + alpha*delta_t*(left+right+top+bottom-4*current_point) / pow(h, 2);
           } else
           grid[current_index] = current_point;
         } else {

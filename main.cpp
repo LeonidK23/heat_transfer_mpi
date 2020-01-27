@@ -15,16 +15,20 @@ int main(int argc, char *argv[]) {
   int N = 216;
   int N_ITER = 400;
   int GHOST_ZONE = 10;
+  int DELTA_T = 1;
+  double ALPHA = 0.4;
+  double H = 2.0f;
+  const int SAVE_FREQUENCY = 1;
   const int N_SOURCES = 8;
   const double SOURCE_TEMPERATURE = 25;
-  const double ALPHA = 0.2;
-  const double H = 1.0f;
-  const int SAVE_FREQUENCY = 1;
 
   if (argc > 1){
     N = atoi(argv[1]);
     GHOST_ZONE = atoi(argv[2]);
     N_ITER = atoi(argv[3]);
+    ALPHA = atof(argv[4]);
+    H = atof(argv[5]);
+    DELTA_T = atoi(argv[6]);
   }
 
   int num, rank;
@@ -35,7 +39,7 @@ int main(int argc, char *argv[]) {
   if(MPI_SUCCESS != ret)
     MPI_Abort(MPI_COMM_WORLD, ret);
 
-  MPI_Comm_size(MPI_COMM_WORLD, &num) ;
+  MPI_Comm_size(MPI_COMM_WORLD, &num);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   // std::mt19937 gen(std::random_device{}());
@@ -106,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     for (int k = 0; k < N_ITER/GHOST_ZONE; k++){
 
-      window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H);
+      window_matrix = heat_transfer_2d(window_matrix, window_size, GHOST_ZONE, SOURCE_TEMPERATURE, ALPHA, H, DELTA_T);
 
       // if not left border processor - exchange with tne left neighbour
       if (rank % n_proc_x != 0){
