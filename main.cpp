@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
     // print_grid(grid, N, N, false);
     // std::cout << "----------------------" << '\n';
     // split matrix and send to other processors
+    auto start = system_clock::now();
     for (int i = 0; i < n_proc_y; i++)
       for (int j = 0; j < n_proc_x; j++){
         rank_id = i*n_proc_x + j;
@@ -97,6 +98,8 @@ int main(int argc, char *argv[]) {
         grid = reshape_grid_2d(rbuf, N, block_size, n_proc - 1);
         print_grid(grid, N, N, true, k);
       }
+    auto end = system_clock::now();
+    std::cout << "Computation took: " << duration<double>(end - start).count() << " seconds" << '\n';
 
   } else {
     MPI_Recv(window_matrix, window_size*window_size, MPI_DOUBLE, num-1, 0, MPI_COMM_WORLD, &stat);
@@ -106,7 +109,6 @@ int main(int argc, char *argv[]) {
     ghost_lines = new double[block_size*GHOST_ZONE];
     recv_ghostlines = new double[block_size*GHOST_ZONE];
 
-    auto start = system_clock::now();
 
     for (int k = 0; k < N_ITER/GHOST_ZONE; k++){
 
@@ -176,8 +178,6 @@ int main(int argc, char *argv[]) {
 
       }
     }
-
-    auto end = system_clock::now();
 
     block_matrix = slice_matrix(window_matrix, window_size, 0, block_size, block_size, 0, SOURCE_TEMPERATURE, false, GHOST_ZONE, GHOST_ZONE, 0);
 
