@@ -6,6 +6,7 @@
 #include "auxiliary.hpp"
 
 double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int block_size_y, int ghost_size, double source_temp, bool is_border, int offset_x, int offset_y, int n_rank_dim){
+  // the function crops out the block out of matrix given the indices and sizes
   int grid_ind, window_size_x, window_size_y;
   window_size_x = block_size_x + 2*ghost_size;
   window_size_y = block_size_y + 2*ghost_size;
@@ -15,25 +16,28 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
   if (!is_border){
     for (int i = 0; i < window_size_y; i++){
       for (int j = 0; j < window_size_x; j++){
+        // compute the index of the element in the main grid
         grid_ind = offset_y*n + offset_x + i*n + j;
         window[i*window_size_x + j] = grid[grid_ind];
       }
-      // std::cout << '\n';
     }
-    // left border of processors grid
+    // if the block is left border of processors' grid
   } else if (rank_id % n_rank_dim == 0){
       for (int i = 0; i < window_size_y; i++){
         for (int j = 0; j < window_size_x; j++){
           grid_ind = offset_y*n + offset_x + i*n + j;
-          // if left ghost line, or if left top ghost line or if left bottom ghost line
+          // if it is left ghost line, or if left top ghost line or if left bottom ghost line
           if (j < ghost_size || (rank_id == 0 &&  i < ghost_size) || (rank_id == n_rank_dim * (n_rank_dim-1) && i >= window_size_y - ghost_size)){
+            // then the element is the border -> source of the heat
             window[i*window_size_x + j] = source_temp;
           }
           else {
+            // else - copy the element from the main grid
             window[i*window_size_x + j] = grid[grid_ind];
           }
         }
       }
+      // if the block is right border of processors' grid
     } else if ((rank_id+1) % n_rank_dim == 0){
       for (int i = 0; i < window_size_y; i++){
         for (int j = 0; j < window_size_x; j++){
@@ -65,6 +69,9 @@ double* slice_matrix(double* grid, int n, int rank_id, int block_size_x, int blo
 }
 
 void insert_block(double* window_matrix, double* ghost_lines, int offset, int m, int n, int gl_m, int gl_n){
+  // the function inserts ghost_lines into window_matrix
+  // m, n - sizes of window_matrix
+  // gl_m, gl_n - sizes of ghost_lines
   int global_ind;
 
   for (int i = 0; i < gl_m; i++){
@@ -75,6 +82,7 @@ void insert_block(double* window_matrix, double* ghost_lines, int offset, int m,
 }
 
 double* reshape_grid_2d(double* mat, int N, int block_size, const int n_blocks){
+  // reshape the gathered grid into normal format
   double *new_mat = new double[N*N];
   int n_blocks_row = std::sqrt(n_blocks);
 
